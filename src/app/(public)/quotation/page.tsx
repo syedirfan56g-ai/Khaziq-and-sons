@@ -53,16 +53,75 @@ export default function QuotationPage() {
   const removeItem = (i: number) => setForm({ ...form, items: form.items.filter((_, idx) => idx !== i) });
 
   const generatePDF = async () => {
-    if (!contentRef.current) return;
     setGenerating(true);
     try {
-      // Save to Firestore
-      await addDoc(collection(db, "quotations"), {
-        ...form,
-        createdAt: Timestamp.now(),
-      });
+      await addDoc(collection(db, "quotations"), { ...form, createdAt: Timestamp.now() });
       const html2pdf = (await import("html2pdf.js")).default;
-      const element = contentRef.current;
+
+      // Build the PDF content as HTML string
+      const itemsHtml = form.items.filter((i) => i.product).map((item, i) =>
+        `<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:8px 12px">${i + 1}</td><td style="padding:8px 12px">${item.product}</td><td style="padding:8px 12px;text-align:center">${item.qty}</td><td style="padding:8px 12px;text-align:right;color:#D97700;font-weight:600">Contact Us</td><td style="padding:8px 12px;text-align:right;color:#D97700;font-weight:600">Volume Based</td></tr>`
+      ).join("");
+
+      const notesHtml = form.notes ? `<div style="margin-bottom:20px;font-size:0.8rem"><strong>Additional Notes:</strong><p style="color:#555;margin-top:4px">${form.notes}</p></div>` : "";
+      const companyRow = form.company ? `<tr><td style="font-weight:600;padding:4px 0">Company:</td><td style="padding:4px 0">${form.company}</td></tr>` : "";
+      const emailRow = form.email ? `<tr><td style="font-weight:600;padding:4px 0">Email:</td><td style="padding:4px 0">${form.email}</td></tr>` : "";
+
+      const html = `
+        <div style="width:794px;background:#fff;padding:30px;font-family:Arial,sans-serif;color:#000">
+          <div style="border-bottom:3px solid #D97700;padding-bottom:16px;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <img src="/logo.png" style="height:50px" />
+              <div style="text-align:right">
+                <h1 style="font-size:1.4rem;margin:0">Khaziq &amp; Sons</h1>
+                <p style="font-size:0.75rem;color:#888;margin:0">Premium Construction &amp; Agriculture Equipment Manufacturer</p>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#555;margin-top:8px">
+              <span>Landhi, Karachi, Pakistan</span>
+              <span>+92 304 2130631 | khaziqandsons@gmail.com</span>
+            </div>
+          </div>
+          <h2 style="font-size:1.2rem;text-align:center;margin-bottom:4px">Official Quotation</h2>
+          <p style="text-align:center;font-size:0.8rem;color:#888;margin-bottom:20px">Quotation Date: ${new Date().toLocaleDateString("en-PK", { year: "numeric", month: "long", day: "numeric" })}</p>
+          <table style="width:100%;font-size:0.8rem;margin-bottom:16px">
+            <tr><td style="font-weight:600;width:120px;padding:4px 0">Customer Name:</td><td style="padding:4px 0">${form.name}</td></tr>
+            ${companyRow}
+            <tr><td style="font-weight:600;padding:4px 0">Phone:</td><td style="padding:4px 0">${form.phone}</td></tr>
+            ${emailRow}
+            <tr><td style="font-weight:600;padding:4px 0">City:</td><td style="padding:4px 0">${form.city}</td></tr>
+          </table>
+          <table style="width:100%;border-collapse:collapse;font-size:0.8rem;margin-bottom:16px">
+            <thead><tr style="background:#1a1a1a;color:#fff">
+              <th style="padding:8px 12px;text-align:left">#</th>
+              <th style="padding:8px 12px;text-align:left">Product</th>
+              <th style="padding:8px 12px;text-align:center">Quantity</th>
+              <th style="padding:8px 12px;text-align:right">Unit Price</th>
+              <th style="padding:8px 12px;text-align:right">Total</th>
+            </tr></thead>
+            <tbody>${itemsHtml}</tbody>
+          </table>
+          <div style="background:#fff3e6;padding:12px 16px;border-radius:6px;margin-bottom:20px;font-size:0.8rem">
+            <strong style="color:#D97700">Note:</strong> All prices are volume-based and customized. Our team will contact you within 24 hours with a detailed quotation.
+          </div>
+          ${notesHtml}
+          <div style="border-top:2px solid #1a1a1a;padding-top:12px;font-size:0.75rem;color:#888;text-align:center">
+            <p>Khaziq &amp; Sons | Landhi, Karachi, Pakistan | +92 304 2130631 | khaziqandsons@gmail.com | khaziqandsons.com</p>
+            <p>&copy; ${new Date().getFullYear()} Khaziq &amp; Sons. This is a computer-generated quotation.</p>
+          </div>
+        </div>
+      `;
+
+      // Create temp element, render, capture, remove
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "fixed";
+      wrapper.style.left = "0";
+      wrapper.style.top = "0";
+      wrapper.style.zIndex = "-9999";
+      wrapper.style.opacity = "0";
+      wrapper.innerHTML = html;
+      document.body.appendChild(wrapper);
+
       await html2pdf().set({
         margin: [15, 15, 15, 15],
         filename: `Quotation_Khaziq_and_Sons_${form.company || form.name}.pdf`,
@@ -70,8 +129,10 @@ export default function QuotationPage() {
         html2canvas: { scale: 3, useCORS: true, letterRendering: true, logging: false },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-      } as Record<string, unknown>).from(element).save();
-    } catch { alert("Could not generate PDF. Use Ctrl+P and save as PDF."); }
+      } as Record<string, unknown>).from(wrapper).save();
+
+      document.body.removeChild(wrapper);
+    } catch { alert("PDF generation failed. Please try again."); }
     setGenerating(false);
   };
 
@@ -120,8 +181,8 @@ export default function QuotationPage() {
           </button>
         </div>
 
-        {/* PDF content (hidden) */}
-        <div ref={contentRef} className="quotation-pdf" style={{ position: "absolute", left: "-9999px", top: 0, width: "794px", background: "#fff", padding: "30px", fontFamily: "Inter, sans-serif" }}>
+        {/* PDF content — hidden visually but renderable by html2canvas */}
+        <div ref={contentRef} className="quotation-pdf" style={{ position: "fixed", left: 0, top: 0, width: "794px", background: "#fff", padding: "30px", fontFamily: "Arial, sans-serif", color: "#000", zIndex: -9999, opacity: 0.01, pointerEvents: "none" }}>
           <div style={{ borderBottom: "3px solid #D97700", paddingBottom: 16, marginBottom: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <img src="/logo.png" alt="Khaziq & Sons" style={{ height: 50 }} />

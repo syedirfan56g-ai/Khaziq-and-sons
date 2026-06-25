@@ -101,7 +101,7 @@ export default function PartnerClient() {
           <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap", marginBottom: 40 }}>
             {[
               { icon: "fa-percentage", title: "Wholesale Rates", desc: "Factory-direct distributor pricing" },
-              { icon: "fa-boxes", title: "Bulk Supply", desc: "Minimum 10 pieces per order" },
+              { icon: "fa-boxes", title: "Bulk Supply", desc: "Min 100 pcs (outstation)" },
               { icon: "fa-map-marked-alt", title: "Territory Rights", desc: "Protected city territories available" },
               { icon: "fa-chart-line", title: "Growing Market", desc: "Pakistan's construction boom" },
             ].map((f) => (
@@ -186,9 +186,9 @@ export default function PartnerClient() {
                 </label>
                 <div className="agreement-box">
                   <p><strong>KHAZIQ &amp; SONS — RETAILER AGREEMENT</strong></p>
-                  <p>1. MINIMUM ORDER: Retailer agrees to purchase minimum 10 (ten) pieces per order.</p>
+                  <p>1. MINIMUM ORDER: Karachi-based retailers — no minimum order quantity. Outstation retailers (outside Karachi) — minimum 100 (one hundred) wheelbarrows per order. For other products, contact us for minimum quantity.</p>
                   <p>2. PRICING CONFIDENTIALITY: Wholesale rates are strictly confidential.</p>
-                  <p>3. PAYMENT: 50% advance on first order. Subsequent orders: 30% advance, 70% on delivery.</p>
+                  <p>3. PAYMENT: 100% advance payment on all orders.</p>
                   <p>4. BRAND PROTECTION: Branding may only be used with written permission.</p>
                   <p>5. PRICE MAINTENANCE: Retailer shall not sell below agreed retail prices.</p>
                   <p>6. TERMINATION: Retailership may be terminated upon breach or fraud.</p>
