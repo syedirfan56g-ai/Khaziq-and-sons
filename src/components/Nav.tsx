@@ -97,6 +97,7 @@ export default function Nav() {
           </button>
           <ul className={`nav-links ${menuOpen ? "open" : ""}`}>
             <li><Link href="/" className={pathname === "/" ? "active" : ""} onClick={() => setMenuOpen(false)}>Home</Link></li>
+            <li><Link href="/story" className={pathname.startsWith("/story") ? "active" : ""} onClick={() => setMenuOpen(false)}>Our Story</Link></li>
 
             {/* Dropdowns */}
             {dropdowns.map((dd) => (
